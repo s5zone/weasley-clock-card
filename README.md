@@ -35,9 +35,11 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
 
 ### Other themes
 Minimalist:
+
 ![screenshot](images/minimalist.png)
 
 Playful:
+
 ![screenshot](images/playful.png)
 
 ### Configuration
