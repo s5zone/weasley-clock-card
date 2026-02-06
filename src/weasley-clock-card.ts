@@ -5,7 +5,9 @@ import {
   WeasleyClockConfig,
   PersonPosition,
   PersonState,
-  HomeAssistant
+  HomeAssistant,
+  ActionConfig,
+  ClockTheme
 } from './types';
 import {
   getPersonSection,
@@ -27,17 +29,39 @@ const HAND_LENGTH = 90;
 const ARROW_SIZE = 12;
 const PERSON_RADIUS = 16;
 
-// Section colors for the steampunk look
-const SECTION_COLORS = [
-  '#6B3A19',
-  '#7D4422',
-  '#8B4513',
-  '#9C5524',
-  '#A0522D',
-  '#8B6914',
-  '#996633',
-  '#7A5230',
-];
+// Section colors by theme
+const SECTION_COLORS: Record<ClockTheme, { light: string[]; dark: string[] }> = {
+  steampunk: {
+    light: ['#6B3A19', '#7D4422', '#8B4513', '#9C5524', '#A0522D', '#8B6914', '#996633', '#7A5230'],
+    dark: ['#4A2511', '#5C3317', '#6B3A19', '#7D4422', '#8B4513', '#6B4423', '#7A5230', '#5D3A1A']
+  },
+  minimalist: {
+    light: ['#F5F5F5', '#EEEEEE', '#E8E8E8', '#F0F0F0', '#EBEBEB', '#F2F2F2', '#E5E5E5', '#EDEDED'],
+    dark: ['#2C2C2C', '#333333', '#3D3D3D', '#363636', '#303030', '#383838', '#2E2E2E', '#353535']
+  },
+  playful: {
+    light: [
+      'rgba(102, 126, 234, 0.5)',
+      'rgba(118, 75, 162, 0.5)',
+      'rgba(237, 100, 166, 0.45)',
+      'rgba(72, 219, 251, 0.45)',
+      'rgba(99, 102, 241, 0.5)',
+      'rgba(139, 92, 246, 0.45)',
+      'rgba(236, 72, 153, 0.4)',
+      'rgba(34, 211, 238, 0.4)'
+    ],
+    dark: [
+      'rgba(99, 102, 241, 0.4)',
+      'rgba(139, 92, 246, 0.4)',
+      'rgba(236, 72, 153, 0.35)',
+      'rgba(34, 211, 238, 0.35)',
+      'rgba(99, 102, 241, 0.35)',
+      'rgba(139, 92, 246, 0.35)',
+      'rgba(236, 72, 153, 0.3)',
+      'rgba(34, 211, 238, 0.3)'
+    ]
+  }
+};
 
 @customElement('weasley-clock-card')
 export class WeasleyClockCard extends LitElement {
@@ -59,8 +83,13 @@ export class WeasleyClockCard extends LitElement {
 
     this._config = {
       ...config,
+      theme: config.theme || 'steampunk',
       default_section: config.default_section || config.sections[0]?.name || 'Unknown'
     };
+  }
+
+  private get _theme(): ClockTheme {
+    return this._config?.theme || 'steampunk';
   }
 
   getCardSize(): number {
@@ -98,6 +127,9 @@ export class WeasleyClockCard extends LitElement {
 
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+
+    // Update theme attribute
+    this.setAttribute('theme', this._theme);
 
     // Update dark mode attribute
     const darkMode = isDarkMode(this.hass);
@@ -175,8 +207,11 @@ export class WeasleyClockCard extends LitElement {
     const sectionCount = sections.length;
     const anglePerSection = 360 / sectionCount;
 
+    const theme = this._theme;
+    const bgColor = this._getBackgroundColor(theme, darkMode);
+
     return html`
-      <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+      ${theme === 'steampunk' ? html`<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">` : ''}
       <ha-card>
         <div class="card-container">
           <div class="clock-wrapper">
@@ -186,7 +221,7 @@ export class WeasleyClockCard extends LitElement {
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
-                ${this._renderDefs(darkMode, sectionCount)}
+                ${this._renderDefs(darkMode, sectionCount, theme)}
               </defs>
 
               <!-- Background circle -->
@@ -194,18 +229,21 @@ export class WeasleyClockCard extends LitElement {
                 cx="${CENTER}"
                 cy="${CENTER}"
                 r="${CLOCK_RADIUS}"
-                fill="${darkMode ? '#1E1810' : '#F5E6C8'}"
+                fill="${bgColor}"
               />
 
               <!-- Section slices -->
               ${sections.map((_, i) => {
                 const startAngle = i * anglePerSection - 90;
                 const endAngle = startAngle + anglePerSection;
+                const sectionFill = theme === 'steampunk'
+                  ? `url(#sectionGradient${i})`
+                  : this._getSectionColor(theme, darkMode, i);
                 return svg`
                   <path
                     class="section-slice"
                     d="${describeArc(CENTER, CENTER, CLOCK_RADIUS, startAngle, endAngle)}"
-                    fill="url(#sectionGradient${i})"
+                    fill="${sectionFill}"
                   />
                 `;
               })}
@@ -231,6 +269,7 @@ export class WeasleyClockCard extends LitElement {
                 const angle = i * anglePerSection - 90 + anglePerSection / 2;
                 const pos = polarToCartesian(CENTER, CENTER, LABEL_RADIUS, angle);
                 const fontSize = this._calculateFontSize(section.name, sectionCount);
+                const filterAttr = theme === 'steampunk' ? 'url(#textShadow)' : '';
 
                 return svg`
                   <text
@@ -239,7 +278,7 @@ export class WeasleyClockCard extends LitElement {
                     y="${pos.y}"
                     transform="rotate(${angle + 90}, ${pos.x}, ${pos.y})"
                     style="font-size: ${fontSize}px"
-                    filter="url(#textShadow)"
+                    filter="${filterAttr}"
                   >
                     ${section.name}
                   </text>
@@ -260,7 +299,7 @@ export class WeasleyClockCard extends LitElement {
               )}
 
               <!-- Center hub -->
-              ${this._renderCenterHub(darkMode)}
+              ${this._renderCenterHub(darkMode, theme)}
 
               <!-- Outer decorative border -->
               <circle
@@ -270,8 +309,8 @@ export class WeasleyClockCard extends LitElement {
                 r="${BORDER_RADIUS}"
               />
 
-              <!-- Decorative rivets around the border -->
-              ${Array.from({ length: 12 }, (_, i) => {
+              <!-- Decorative rivets around the border (steampunk only) -->
+              ${theme === 'steampunk' ? Array.from({ length: 12 }, (_, i) => {
                 const angle = i * 30 - 90;
                 const pos = polarToCartesian(CENTER, CENTER, BORDER_RADIUS, angle);
                 return svg`
@@ -282,7 +321,7 @@ export class WeasleyClockCard extends LitElement {
                     r="4"
                   />
                 `;
-              })}
+              }) : ''}
             </svg>
           </div>
         </div>
@@ -290,50 +329,113 @@ export class WeasleyClockCard extends LitElement {
     `;
   }
 
-  private _renderDefs(isDark: boolean, sectionCount: number) {
+  private _renderDefs(isDark: boolean, sectionCount: number, theme: ClockTheme) {
+    if (theme === 'steampunk') {
+      const colors = SECTION_COLORS.steampunk;
+      const colorSet = isDark ? colors.dark : colors.light;
+
+      return svg`
+        <!-- Gradients for metallic look -->
+        <radialGradient id="hubGradient" cx="30%" cy="30%">
+          <stop offset="0%" stop-color="${isDark ? '#D4AF37' : '#FFD700'}" />
+          <stop offset="50%" stop-color="${isDark ? '#B8860B' : '#DAA520'}" />
+          <stop offset="100%" stop-color="${isDark ? '#8B6914' : '#B8860B'}" />
+        </radialGradient>
+
+        <radialGradient id="hubInnerGradient" cx="40%" cy="40%">
+          <stop offset="0%" stop-color="${isDark ? '#A67C52' : '#CD7F32'}" />
+          <stop offset="100%" stop-color="${isDark ? '#6B4423' : '#8B4513'}" />
+        </radialGradient>
+
+        <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${isDark ? '#D4AF37' : '#CFB53B'}" />
+          <stop offset="25%" stop-color="${isDark ? '#8B6914' : '#B87333'}" />
+          <stop offset="50%" stop-color="${isDark ? '#D4AF37' : '#CD7F32'}" />
+          <stop offset="75%" stop-color="${isDark ? '#8B6914' : '#B87333'}" />
+          <stop offset="100%" stop-color="${isDark ? '#D4AF37' : '#CFB53B'}" />
+        </linearGradient>
+
+        <!-- Section gradients -->
+        ${Array.from({ length: sectionCount }, (_, i) => svg`
+          <radialGradient id="sectionGradient${i}" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stop-color="${this._adjustColor(colorSet[i % colorSet.length], isDark ? -20 : 20)}" />
+            <stop offset="100%" stop-color="${this._adjustColor(colorSet[i % colorSet.length], isDark ? -40 : 0)}" />
+          </radialGradient>
+        `)}
+
+        <!-- Golden text gradient for labels -->
+        <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="${isDark ? '#F4E4BA' : '#FFF8DC'}" />
+          <stop offset="20%" stop-color="${isDark ? '#DAA520' : '#FFD700'}" />
+          <stop offset="50%" stop-color="${isDark ? '#B8860B' : '#DAA520'}" />
+          <stop offset="80%" stop-color="${isDark ? '#DAA520' : '#FFD700'}" />
+          <stop offset="100%" stop-color="${isDark ? '#8B6914' : '#B8860B'}" />
+        </linearGradient>
+
+        <!-- Drop shadow filter for text -->
+        <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.7"/>
+        </filter>
+      `;
+    }
+
+    if (theme === 'minimalist') {
+      return svg`
+        <!-- Simple hub gradient for minimalist -->
+        <radialGradient id="hubGradient" cx="30%" cy="30%">
+          <stop offset="0%" stop-color="${isDark ? '#757575' : '#BDBDBD'}" />
+          <stop offset="100%" stop-color="${isDark ? '#424242' : '#9E9E9E'}" />
+        </radialGradient>
+
+        <radialGradient id="hubInnerGradient" cx="40%" cy="40%">
+          <stop offset="0%" stop-color="${isDark ? '#424242' : '#F5F5F5'}" />
+          <stop offset="100%" stop-color="${isDark ? '#212121' : '#E0E0E0'}" />
+        </radialGradient>
+      `;
+    }
+
+    // Modern theme
     return svg`
-      <!-- Gradients for metallic look -->
+      <!-- Glass-like hub gradient for modern -->
       <radialGradient id="hubGradient" cx="30%" cy="30%">
-        <stop offset="0%" stop-color="${isDark ? '#D4AF37' : '#FFD700'}" />
-        <stop offset="50%" stop-color="${isDark ? '#B8860B' : '#DAA520'}" />
-        <stop offset="100%" stop-color="${isDark ? '#8B6914' : '#B8860B'}" />
+        <stop offset="0%" stop-color="rgba(255, 255, 255, 0.95)" />
+        <stop offset="50%" stop-color="rgba(255, 255, 255, 0.8)" />
+        <stop offset="100%" stop-color="rgba(255, 255, 255, 0.6)" />
       </radialGradient>
 
       <radialGradient id="hubInnerGradient" cx="40%" cy="40%">
-        <stop offset="0%" stop-color="${isDark ? '#A67C52' : '#CD7F32'}" />
-        <stop offset="100%" stop-color="${isDark ? '#6B4423' : '#8B4513'}" />
+        <stop offset="0%" stop-color="rgba(255, 255, 255, 0.5)" />
+        <stop offset="100%" stop-color="rgba(255, 255, 255, 0.2)" />
       </radialGradient>
 
-      <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${isDark ? '#D4AF37' : '#CFB53B'}" />
-        <stop offset="25%" stop-color="${isDark ? '#8B6914' : '#B87333'}" />
-        <stop offset="50%" stop-color="${isDark ? '#D4AF37' : '#CD7F32'}" />
-        <stop offset="75%" stop-color="${isDark ? '#8B6914' : '#B87333'}" />
-        <stop offset="100%" stop-color="${isDark ? '#D4AF37' : '#CFB53B'}" />
-      </linearGradient>
-
-      <!-- Section gradients -->
-      ${Array.from({ length: sectionCount }, (_, i) => svg`
-        <radialGradient id="sectionGradient${i}" cx="50%" cy="50%" r="70%">
-          <stop offset="0%" stop-color="${this._adjustColor(SECTION_COLORS[i % SECTION_COLORS.length], isDark ? -20 : 20)}" />
-          <stop offset="100%" stop-color="${this._adjustColor(SECTION_COLORS[i % SECTION_COLORS.length], isDark ? -40 : 0)}" />
-        </radialGradient>
-      `)}
-
-      <!-- Golden text gradient for labels -->
-      <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="${isDark ? '#F4E4BA' : '#FFF8DC'}" />
-        <stop offset="20%" stop-color="${isDark ? '#DAA520' : '#FFD700'}" />
-        <stop offset="50%" stop-color="${isDark ? '#B8860B' : '#DAA520'}" />
-        <stop offset="80%" stop-color="${isDark ? '#DAA520' : '#FFD700'}" />
-        <stop offset="100%" stop-color="${isDark ? '#8B6914' : '#B8860B'}" />
-      </linearGradient>
-
-      <!-- Drop shadow filter for text -->
-      <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="1" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.7"/>
+      <!-- Subtle glow filter for modern -->
+      <filter id="modernGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
       </filter>
     `;
+  }
+
+  private _getBackgroundColor(theme: ClockTheme, isDark: boolean): string {
+    switch (theme) {
+      case 'steampunk':
+        return isDark ? '#1E1810' : '#F5E6C8';
+      case 'minimalist':
+        return isDark ? '#1E1E1E' : '#FAFAFA';
+      case 'playful':
+        return isDark ? '#1a1a2e' : '#667eea';
+      default:
+        return isDark ? '#1E1810' : '#F5E6C8';
+    }
+  }
+
+  private _getSectionColor(theme: ClockTheme, isDark: boolean, index: number): string {
+    const colors = SECTION_COLORS[theme];
+    const colorSet = isDark ? colors.dark : colors.light;
+    return colorSet[index % colorSet.length];
   }
 
   private _renderClockHand(person: PersonPosition, index: number) {
@@ -385,53 +487,72 @@ export class WeasleyClockCard extends LitElement {
           points="${arrowTip.x},${arrowTip.y} ${wing1.x},${wing1.y} ${wing2.x},${wing2.y}"
         />
 
-        <!-- Person circle -->
+        <!-- Person circle (clickable) -->
         <defs>
           <clipPath id="${clipId}">
             <circle cx="${personPos.x}" cy="${personPos.y}" r="${PERSON_RADIUS}" />
           </clipPath>
         </defs>
 
-        ${hasImage ? svg`
-          <image
-            class="person-image"
-            x="${personPos.x - PERSON_RADIUS}"
-            y="${personPos.y - PERSON_RADIUS}"
-            width="${PERSON_RADIUS * 2}"
-            height="${PERSON_RADIUS * 2}"
-            href="${person.state?.attributes?.entity_picture}"
-            clip-path="url(#${clipId})"
-            preserveAspectRatio="xMidYMid slice"
-          />
-        ` : svg`
+        <g
+          class="person-circle"
+          @click=${(e: Event) => this._handleAction(e, person)}
+        >
+          <!-- Invisible hit area for easier tapping -->
           <circle
             cx="${personPos.x}"
             cy="${personPos.y}"
-            r="${PERSON_RADIUS}"
-            fill="${color}"
+            r="${PERSON_RADIUS + 5}"
+            fill="transparent"
           />
-          <text
-            class="person-fallback"
-            x="${personPos.x}"
-            y="${personPos.y}"
-            fill="white"
-          >
-            ${this._getInitials(displayName)}
-          </text>
-        `}
 
-        <!-- Decorative frame -->
-        <circle
-          class="person-frame"
-          cx="${personPos.x}"
-          cy="${personPos.y}"
-          r="${PERSON_RADIUS + 2}"
-        />
+          ${hasImage ? svg`
+            <image
+              class="person-image"
+              x="${personPos.x - PERSON_RADIUS}"
+              y="${personPos.y - PERSON_RADIUS}"
+              width="${PERSON_RADIUS * 2}"
+              height="${PERSON_RADIUS * 2}"
+              href="${person.state?.attributes?.entity_picture}"
+              clip-path="url(#${clipId})"
+              preserveAspectRatio="xMidYMid slice"
+            />
+          ` : svg`
+            <circle
+              cx="${personPos.x}"
+              cy="${personPos.y}"
+              r="${PERSON_RADIUS}"
+              fill="${color}"
+            />
+            <text
+              class="person-fallback"
+              x="${personPos.x}"
+              y="${personPos.y}"
+              fill="white"
+            >
+              ${this._getInitials(displayName)}
+            </text>
+          `}
+
+          <!-- Decorative frame -->
+          <circle
+            class="person-frame"
+            cx="${personPos.x}"
+            cy="${personPos.y}"
+            r="${PERSON_RADIUS + 2}"
+          />
+        </g>
       </g>
     `;
   }
 
-  private _renderCenterHub(isDark: boolean) {
+  private _renderCenterHub(isDark: boolean, theme: ClockTheme) {
+    const centerDotColor = theme === 'steampunk'
+      ? (isDark ? '#D4AF37' : '#FFD700')
+      : theme === 'minimalist'
+        ? (isDark ? '#616161' : '#9E9E9E')
+        : 'rgba(255, 255, 255, 0.9)';
+
     return svg`
       <circle
         class="center-hub"
@@ -445,7 +566,7 @@ export class WeasleyClockCard extends LitElement {
         cy="${CENTER}"
         r="${HUB_RADIUS * 0.6}"
       />
-      ${Array.from({ length: 6 }, (_, i) => {
+      ${theme === 'steampunk' ? Array.from({ length: 6 }, (_, i) => {
         const angle = i * 60;
         const pos = polarToCartesian(CENTER, CENTER, HUB_RADIUS * 0.8, angle);
         return svg`
@@ -456,12 +577,12 @@ export class WeasleyClockCard extends LitElement {
             r="2.5"
           />
         `;
-      })}
+      }) : ''}
       <circle
         cx="${CENTER}"
         cy="${CENTER}"
         r="3"
-        fill="${isDark ? '#D4AF37' : '#FFD700'}"
+        fill="${centerDotColor}"
       />
     `;
   }
@@ -488,6 +609,65 @@ export class WeasleyClockCard extends LitElement {
       return words[0].substring(0, 2).toUpperCase();
     }
     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  }
+
+  private _handleAction(e: Event, person: PersonPosition): void {
+    e.stopPropagation();
+
+    const config = person.config.tap_action || { action: 'more-info' as const };
+    const entityId = config.entity || person.config.entity;
+
+    switch (config.action) {
+      case 'more-info':
+        this._fireMoreInfo(entityId);
+        break;
+      case 'toggle':
+        this._toggleEntity(entityId);
+        break;
+      case 'call-service':
+        this._callService(config);
+        break;
+      case 'navigate':
+        this._navigate(config.navigation_path);
+        break;
+      case 'url':
+        this._openUrl(config.url_path);
+        break;
+      case 'none':
+      default:
+        break;
+    }
+  }
+
+  private _fireMoreInfo(entityId: string): void {
+    const event = new CustomEvent('hass-more-info', {
+      bubbles: true,
+      composed: true,
+      detail: { entityId }
+    });
+    this.dispatchEvent(event);
+  }
+
+  private _toggleEntity(entityId: string): void {
+    if (!this.hass) return;
+    this.hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+  }
+
+  private _callService(config: ActionConfig): void {
+    if (!this.hass || !config.service) return;
+    const [domain, service] = config.service.split('.');
+    this.hass.callService(domain, service, config.service_data || {});
+  }
+
+  private _navigate(path?: string): void {
+    if (!path) return;
+    history.pushState(null, '', path);
+    window.dispatchEvent(new CustomEvent('location-changed'));
+  }
+
+  private _openUrl(url?: string): void {
+    if (!url) return;
+    window.open(url, '_blank');
   }
 
   static getConfigElement() {

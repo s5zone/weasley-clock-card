@@ -1,17 +1,18 @@
 # Weasley Clock Card
 
-A custom Lovelace card for Home Assistant that displays a magical Weasley Clock in steampunk style (more to be added later) - showing where your home assistant users are located.
+A custom Lovelace card for Home Assistant that displays a magical Weasley Clock - showing where your family members are located. Choose from three beautiful themes: Steampunk (classic brass and gold), Minimalist (clean and modern), or Playful (vibrant gradients with glass effects).
 
 ![screenshot](example-weasley-clock.png)
 
 ## Features
 
-- **Steampunk Design**: An initial design, more will be added later. Feel free to let me know your preferences
+- **Multiple Themes**: Choose from Steampunk, Minimalist, or Playful designs
 - **Person Tracking**: Displays person entities with their Home Assistant profile pictures or first two characters
 - **Configurable Sections**: Up to 8 customizable sections (Home, Work, School, etc.)
 - **Zone Mapping**: Multiple zones can map to a single section
 - **Fan-out Support**: Multiple persons in the same section spread out to avoid overlap
-- **Theme Support**: Adapts to Home Assistant light and dark themes
+- **Theme Support**: Adapts to Home Assistant light and dark modes
+- **Tap Actions**: Configurable actions when tapping a person's clock hand (more-info, navigate, call-service, etc.)
 
 ## Installation
 
@@ -73,6 +74,7 @@ default_section: Traveling
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `type` | string | Yes | - | Must be `custom:weasley-clock-card` |
+| `theme` | string | No | `steampunk` | Clock theme: `steampunk`, `minimalist`, or `playful` |
 | `persons` | list | Yes | - | List of person entities to track |
 | `sections` | list | Yes | - | List of clock sections (1-8 sections) |
 | `default_section` | string | No | First section | Section name for persons in unmapped zones |
@@ -84,6 +86,18 @@ default_section: Traveling
 | `entity` | string | Yes | Person entity ID (e.g., `person.harry`) |
 | `name` | string | No | Display name override |
 | `color` | string | No | Fallback color if no profile picture (hex format) |
+| `tap_action` | object | No | Action to perform when tapping the person's clock hand |
+
+### Tap Action Configuration
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `action` | string | Yes | Action type: `more-info`, `toggle`, `call-service`, `navigate`, `url`, or `none` |
+| `entity` | string | No | Entity ID for `more-info` or `toggle` actions (defaults to the person entity) |
+| `navigation_path` | string | No | Path for `navigate` action (e.g., `/lovelace/person`) |
+| `url_path` | string | No | URL for `url` action |
+| `service` | string | No | Service to call for `call-service` action (e.g., `notify.mobile_app`) |
+| `service_data` | object | No | Data to pass to the service |
 
 ### Section Configuration
 
@@ -92,12 +106,71 @@ default_section: Traveling
 | `name` | string | Yes | Display name for the section |
 | `zones` | list | Yes | List of zone entity IDs that map to this section |
 
+### Available Themes
+
+| Theme | Description |
+|-------|-------------|
+| `steampunk` | Classic brass and gold Victorian-era design with decorative rivets, metallic gradients, and an aged parchment look. Uses the Cinzel serif font for labels. |
+| `minimalist` | Clean, flat design with a monochrome gray palette. No shadows or decorative elements. Simple thin borders and modern sans-serif typography. |
+| `playful` | Vibrant gradient design with glass-morphism effects. Features colorful sections (purples, blues, pinks, teals), soft glowing accents, and a fun, whimsical feel. |
+
+All themes automatically adapt to Home Assistant's light and dark modes.
+
 ## Examples
 
-### Basic 4-Section Clock
+### Minimalist Theme
 
 ```yaml
 type: custom:weasley-clock-card
+theme: minimalist
+persons:
+  - entity: person.mom
+  - entity: person.dad
+  - entity: person.kid
+sections:
+  - name: Home
+    zones:
+      - zone.home
+  - name: Work
+    zones:
+      - zone.work
+  - name: School
+    zones:
+      - zone.school
+  - name: Away
+    zones: []
+default_section: Away
+```
+
+### Playful Theme
+
+```yaml
+type: custom:weasley-clock-card
+theme: playful
+persons:
+  - entity: person.mom
+  - entity: person.dad
+  - entity: person.kid
+sections:
+  - name: Home
+    zones:
+      - zone.home
+  - name: Work
+    zones:
+      - zone.work
+  - name: School
+    zones:
+      - zone.school
+  - name: Away
+    zones: []
+default_section: Away
+```
+
+### Steampunk Theme (Default)
+
+```yaml
+type: custom:weasley-clock-card
+theme: steampunk
 persons:
   - entity: person.mom
   - entity: person.dad
@@ -166,6 +239,36 @@ sections:
   - name: Traveling
     zones: []
 default_section: Traveling
+```
+
+### Using Tap Actions
+
+```yaml
+type: custom:weasley-clock-card
+persons:
+  - entity: person.harry
+    name: Harry
+    tap_action:
+      action: more-info
+  - entity: person.ron
+    name: Ron
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace/ron-dashboard
+  - entity: person.hermione
+    name: Hermione
+    tap_action:
+      action: call-service
+      service: notify.mobile_app_hermione
+      service_data:
+        message: "Hermione was tapped on the clock!"
+sections:
+  - name: Home
+    zones:
+      - zone.home
+  - name: Away
+    zones: []
+default_section: Away
 ```
 
 ## Behavior Notes
