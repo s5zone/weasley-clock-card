@@ -2,5 +2,5 @@
   "name": "Weasley Clock Card",
   "content_in_root": false,
   "render_readme": true,
-  "filename": "dist/weasley-clock-card.js"
+  "filename": "weasley-clock-card.js"
 }
