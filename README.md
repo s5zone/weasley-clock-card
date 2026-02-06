@@ -2,7 +2,7 @@
 
 A custom Lovelace card for Home Assistant that displays a magical Weasley Clock - showing where your family members are located. Choose from three beautiful themes: Steampunk (classic brass and gold), Minimalist (clean and modern), or Playful (vibrant gradients with glass effects).
 
-![screenshot](example-weasley-clock.png)
+![screenshot](images/example-weasley-clock.png)
 
 ## Features
 
@@ -33,7 +33,14 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
    - Go to Settings → Dashboards → Resources
    - Add `/local/weasley-clock-card.js` as a JavaScript Module
 
-## Configuration
+### Other themes
+Minimalist:
+![screenshot](images/minimalist.png)
+
+Playful:
+![screenshot](images/playful.png)
+
+### Configuration
 
 Add the card to your Lovelace dashboard:
 
