@@ -27,7 +27,7 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
 
 ### Manual Installation
 
-1. Download `weasley-clock-card.js` from the [latest release](https://github.com/jochimsergoyne/weasley-clock/releases)
+1. Download `weasley-clock-card.js` from the [latest release](https://github.com/s5zone/weasley-clock/releases)
 2. Copy it to your `config/www` folder
 3. Add the resource in Home Assistant:
    - Go to Settings → Dashboards → Resources
