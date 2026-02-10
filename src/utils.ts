@@ -1,4 +1,4 @@
-import { SectionConfig, PersonState } from './types';
+import { SectionConfig, PersonState, HomeAssistant } from './types';
 
 /**
  * Determines which section a person belongs to based on their current zone state
@@ -6,7 +6,8 @@ import { SectionConfig, PersonState } from './types';
 export function getPersonSection(
   personState: PersonState | null,
   sections: SectionConfig[],
-  defaultSection: string
+  defaultSection: string,
+  hass?: HomeAssistant
 ): { sectionIndex: number; sectionName: string } {
   if (!personState || personState.state === 'unavailable' || personState.state === 'unknown') {
     // Return default section for unavailable persons
@@ -17,32 +18,32 @@ export function getPersonSection(
     };
   }
 
-  // Normalize the zone name the same way Home Assistant does:
-  // lowercase, spaces to underscores, remove special characters
-  const normalizedState = personState.state
-    .toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/[^a-z0-9_]/g, '');
-  const currentZone = `zone.${normalizedState}`;
-  const homeZone = 'zone.home';
+  // Find the zone entity ID by matching the person's state (friendly name) against zone friendly names
+  let currentZone: string | undefined;
+
+  if (hass?.states) {
+    // Look up the zone entity by matching friendly_name to the person's state
+    const zoneEntry = Object.entries(hass.states).find(([entityId, state]) =>
+      entityId.startsWith('zone.') &&
+      state.attributes?.friendly_name?.toLowerCase() === personState.state.toLowerCase()
+    );
+
+    if (zoneEntry) {
+      currentZone = zoneEntry[0]; // The actual entity_id like "zone.work_location"
+    }
+  }
+
+  // Fallback: if no zone found by friendly name, try to construct it (for 'home' and simple cases)
+  if (!currentZone) {
+    currentZone = `zone.${personState.state.toLowerCase().replace(/\s+/g, '_')}`;
+  }
 
   // Check each section for matching zones
   for (let i = 0; i < sections.length; i++) {
     const section = sections[i];
     for (const zone of section.zones) {
       // Match by zone entity ID
-      if (zone.toLowerCase() === currentZone) {
-        return { sectionIndex: i, sectionName: section.name };
-      }
-      // Also check if person state directly matches the zone name (without zone. prefix)
-      // Normalize both sides to handle special characters consistently
-      const zoneName = zone.replace('zone.', '').replace(/_/g, ' ').replace(/[^a-z0-9 ]/gi, '');
-      const normalizedPersonState = personState.state.toLowerCase().replace(/[^a-z0-9 ]/gi, '');
-      if (normalizedPersonState === zoneName.toLowerCase()) {
-        return { sectionIndex: i, sectionName: section.name };
-      }
-      // Check for 'home' special case
-      if (personState.state.toLowerCase() === 'home' && zone === homeZone) {
+      if (zone.toLowerCase() === currentZone.toLowerCase()) {
         return { sectionIndex: i, sectionName: section.name };
       }
     }

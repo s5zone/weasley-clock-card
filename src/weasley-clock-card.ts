@@ -156,7 +156,8 @@ export class WeasleyClockCard extends LitElement {
       const { sectionIndex, sectionName } = getPersonSection(
         state || null,
         this._config.sections,
-        this._config.default_section
+        this._config.default_section,
+        this.hass
       );
 
       positions.push({

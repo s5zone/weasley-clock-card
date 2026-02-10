@@ -1,8 +1,8 @@
-import { SectionConfig, PersonState } from './types';
+import { SectionConfig, PersonState, HomeAssistant } from './types';
 /**
  * Determines which section a person belongs to based on their current zone state
  */
-export declare function getPersonSection(personState: PersonState | null, sections: SectionConfig[], defaultSection: string): {
+export declare function getPersonSection(personState: PersonState | null, sections: SectionConfig[], defaultSection: string, hass?: HomeAssistant): {
     sectionIndex: number;
     sectionName: string;
 };
