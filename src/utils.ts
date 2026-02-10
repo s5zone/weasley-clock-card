@@ -17,7 +17,13 @@ export function getPersonSection(
     };
   }
 
-  const currentZone = `zone.${personState.state.toLowerCase().replace(/\s+/g, '_')}`;
+  // Normalize the zone name the same way Home Assistant does:
+  // lowercase, spaces to underscores, remove special characters
+  const normalizedState = personState.state
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+  const currentZone = `zone.${normalizedState}`;
   const homeZone = 'zone.home';
 
   // Check each section for matching zones
@@ -29,8 +35,10 @@ export function getPersonSection(
         return { sectionIndex: i, sectionName: section.name };
       }
       // Also check if person state directly matches the zone name (without zone. prefix)
-      const zoneName = zone.replace('zone.', '').replace(/_/g, ' ');
-      if (personState.state.toLowerCase() === zoneName.toLowerCase()) {
+      // Normalize both sides to handle special characters consistently
+      const zoneName = zone.replace('zone.', '').replace(/_/g, ' ').replace(/[^a-z0-9 ]/gi, '');
+      const normalizedPersonState = personState.state.toLowerCase().replace(/[^a-z0-9 ]/gi, '');
+      if (normalizedPersonState === zoneName.toLowerCase()) {
         return { sectionIndex: i, sectionName: section.name };
       }
       // Check for 'home' special case
