@@ -44,7 +44,7 @@ Playful:
 ![screenshot](images/playful.png)
 
 ### Icons
-Minimalist:
+Example with icons:
 
 ![screenshot](images/icons.png)
 
