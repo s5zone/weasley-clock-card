@@ -9,6 +9,7 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
 - **Multiple Themes**: Choose from Steampunk, Minimalist, or Playful designs
 - **Person Tracking**: Displays person entities with their Home Assistant profile pictures or first two characters
 - **Configurable Sections**: Up to 8 customizable sections (Home, Work, School, etc.)
+- **Section Icons**: Optional MDI icons displayed as watermarks within sections
 - **Zone Mapping**: Multiple zones can map to a single section
 - **Fan-out Support**: Multiple persons in the same section spread out to avoid overlap
 - **Theme Support**: Adapts to Home Assistant light and dark modes
@@ -42,6 +43,11 @@ Playful:
 
 ![screenshot](images/playful.png)
 
+### Icons
+Minimalist:
+
+![screenshot](images/icons.png)
+
 ### Configuration
 
 Add the card to your Lovelace dashboard:
@@ -60,20 +66,25 @@ persons:
     color: "#5D4E8C"
 sections:
   - name: Home
+    icon: "mdi:home"
     zones:
       - zone.home
   - name: Work
+    icon: "mdi:briefcase"
     zones:
       - zone.office_harry
       - zone.office_ron
       - zone.ministry
   - name: School
+    icon: "mdi:school"
     zones:
       - zone.hogwarts
   - name: Garden
+    icon: "mdi:flower"
     zones:
       - zone.garden
   - name: Traveling
+    icon: "mdi:car"
     zones: []
 default_section: Traveling
 ```
@@ -114,6 +125,7 @@ default_section: Traveling
 |--------|------|----------|-------------|
 | `name` | string | Yes | Display name for the section |
 | `zones` | list | Yes | List of zone entity IDs that map to this section |
+| `icon` | string | No | MDI icon to display as a watermark in the section (e.g., `mdi:home`) |
 
 ### Available Themes
 

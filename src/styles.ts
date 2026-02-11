@@ -229,6 +229,43 @@ export const styles = css`
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
+  /* Section icon styles */
+  .section-icon {
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .section-icon ha-icon {
+    --mdc-icon-size: 100%;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  :host([theme="steampunk"]) .section-icon ha-icon {
+    color: rgba(210, 180, 140, 0.2);
+  }
+
+  :host([theme="steampunk"][dark-mode]) .section-icon ha-icon {
+    color: rgba(210, 180, 140, 0.15);
+  }
+
+  :host([theme="minimalist"]) .section-icon ha-icon {
+    color: rgba(120, 120, 120, 0.12);
+  }
+
+  :host([theme="minimalist"][dark-mode]) .section-icon ha-icon {
+    color: rgba(200, 200, 200, 0.1);
+  }
+
+  :host([theme="playful"]) .section-icon ha-icon {
+    color: rgba(255, 255, 255, 0.15);
+  }
+
+  :host([theme="playful"][dark-mode]) .section-icon ha-icon {
+    color: rgba(255, 255, 255, 0.1);
+  }
+
   /* Clock hand styles */
   .clock-hand {
     transition: transform var(--wc-transition-duration) ease-in-out;

@@ -249,6 +249,26 @@ export class WeasleyClockCard extends LitElement {
                 `;
               })}
 
+              <!-- Section icons -->
+              ${sections.map((section, i) => {
+                if (!section.icon) return svg``;
+                const midAngle = i * anglePerSection - 90 + anglePerSection / 2;
+                const iconRadius = CLOCK_RADIUS * 0.5;
+                const pos = polarToCartesian(CENTER, CENTER, iconRadius, midAngle);
+                const iconSize = Math.min(CLOCK_RADIUS * 0.45, anglePerSection * 1.2);
+                return svg`
+                  <foreignObject
+                    class="section-icon"
+                    x="${pos.x - iconSize / 2}"
+                    y="${pos.y - iconSize / 2}"
+                    width="${iconSize}"
+                    height="${iconSize}"
+                  >
+                    <ha-icon icon="${section.icon}"></ha-icon>
+                  </foreignObject>
+                `;
+              })}
+
               <!-- Section divider lines -->
               ${sections.map((_, i) => {
                 const angle = i * anglePerSection - 90;

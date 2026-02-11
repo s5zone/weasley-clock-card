@@ -25,6 +25,7 @@ export interface PersonConfig {
 export interface SectionConfig {
     name: string;
     zones: string[];
+    icon?: string;
 }
 export interface PersonState {
     entity_id: string;
