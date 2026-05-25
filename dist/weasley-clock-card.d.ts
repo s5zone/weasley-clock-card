@@ -9,6 +9,7 @@ export declare class WeasleyClockCard extends LitElement {
     getCardSize(): number;
     protected shouldUpdate(changedProps: PropertyValues): boolean;
     protected updated(changedProps: PropertyValues): void;
+    private _shouldHide;
     private _getPersonPositions;
     protected render(): import("lit-html").TemplateResult<1>;
     private _renderDefs;

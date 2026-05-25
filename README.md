@@ -10,6 +10,7 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
 - **Person Tracking**: Displays person entities with their Home Assistant profile pictures or first two characters
 - **Configurable Sections**: Up to 8 customizable sections (Home, Work, School, etc.)
 - **Section Icons**: Optional MDI icons displayed as watermarks within sections
+- **Conditional Visibility**: Optionally hide the entire card unless someone is in one of the configured sections
 - **Zone Mapping**: Multiple zones can map to a single section
 - **Fan-out Support**: Multiple persons in the same section spread out to avoid overlap
 - **Theme Support**: Adapts to Home Assistant light and dark modes
@@ -98,6 +99,7 @@ default_section: Traveling
 | `persons` | list | Yes | - | List of person entities to track |
 | `sections` | list | Yes | - | List of clock sections (1-8 sections) |
 | `default_section` | string | No | First section | Section name for persons in unmapped zones |
+| `visible_when_in` | list | No | - | List of section names. If set, the card is only shown when at least one tracked person is currently in one of these sections. Omit (or leave empty) to always show. |
 
 ### Person Configuration
 
@@ -262,6 +264,35 @@ sections:
 default_section: Traveling
 ```
 
+### Conditional Visibility
+
+Hide the card whenever everyone is home; show it as soon as someone is at work, at school, or travelling:
+
+```yaml
+type: custom:weasley-clock-card
+visible_when_in:
+  - Work
+  - School
+  - Traveling
+persons:
+  - entity: person.mom
+  - entity: person.dad
+  - entity: person.kid
+sections:
+  - name: Home
+    zones:
+      - zone.home
+  - name: Work
+    zones:
+      - zone.work
+  - name: School
+    zones:
+      - zone.school
+  - name: Traveling
+    zones: []
+default_section: Traveling
+```
+
 ### Using Tap Actions
 
 ```yaml
@@ -298,6 +329,7 @@ default_section: Away
 - **Unmapped Zones**: If a person is in a zone not mapped to any section, they appear in the `default_section`
 - **Zone Matching**: Zones are matched by entity ID (e.g., `zone.home` matches the "home" state)
 - **Multiple Persons**: When multiple persons are in the same section, their hands fan out evenly within that section
+- **Conditional Visibility**: When `visible_when_in` is set, the card is fully hidden (takes no layout space) until at least one available person is in one of the listed sections. Persons whose state is `unavailable` or `unknown` do not count.
 
 ## Troubleshooting
 

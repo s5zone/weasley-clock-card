@@ -7,6 +7,10 @@ export const styles = css`
     --wc-transition-duration: 0.5s;
   }
 
+  :host([hidden]) {
+    display: none;
+  }
+
   /* =====================================================
      STEAMPUNK THEME (Default)
      ===================================================== */
@@ -237,9 +241,12 @@ export const styles = css`
 
   .section-icon ha-icon {
     --mdc-icon-size: 100%;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
+    line-height: 0;
   }
 
   :host([theme="steampunk"]) .section-icon ha-icon {

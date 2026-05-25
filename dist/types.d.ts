@@ -15,6 +15,7 @@ export interface WeasleyClockConfig {
     persons: PersonConfig[];
     sections: SectionConfig[];
     default_section: string;
+    visible_when_in?: string[];
 }
 export interface PersonConfig {
     entity: string;

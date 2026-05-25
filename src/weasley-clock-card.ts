@@ -31,13 +31,50 @@ const PERSON_RADIUS = 16;
 
 // Section colors by theme
 const SECTION_COLORS: Record<ClockTheme, { light: string[]; dark: string[] }> = {
-  steampunk: {
-    light: ['#6B3A19', '#7D4422', '#8B4513', '#9C5524', '#A0522D', '#8B6914', '#996633', '#7A5230'],
-    dark: ['#4A2511', '#5C3317', '#6B3A19', '#7D4422', '#8B4513', '#6B4423', '#7A5230', '#5D3A1A']
+  steampunk: 
+  {
+    light: [
+      '#6B3A19', 
+      '#7D4422', 
+      '#8B4513', 
+      '#9C5524', 
+      '#A0522D', 
+      '#8B6914', 
+      '#996633', 
+      '#7A5230'
+    ],
+    dark: [
+      '#4A2511', 
+      '#5C3317', 
+      '#6B3A19', 
+      '#7D4422', 
+      '#8B4513', 
+      '#6B4423', 
+      '#7A5230', 
+      '#5D3A1A'
+    ]
   },
   minimalist: {
-    light: ['#F5F5F5', '#EEEEEE', '#E8E8E8', '#F0F0F0', '#EBEBEB', '#F2F2F2', '#E5E5E5', '#EDEDED'],
-    dark: ['#2C2C2C', '#333333', '#3D3D3D', '#363636', '#303030', '#383838', '#2E2E2E', '#353535']
+    light: [
+      '#F5F5F5', 
+      '#EEEEEE', 
+      '#E8E8E8', 
+      '#F0F0F0', 
+      '#EBEBEB', 
+      '#F2F2F2', 
+      '#E5E5E5', 
+      '#EDEDED'
+    ],
+    dark: [
+      '#2C2C2C', 
+      '#333333', 
+      '#3D3D3D', 
+      '#363636', 
+      '#303030', 
+      '#383838', 
+      '#2E2E2E', 
+      '#353535'
+    ]
   },
   playful: {
     light: [
@@ -138,6 +175,24 @@ export class WeasleyClockCard extends LitElement {
     } else {
       this.removeAttribute('dark-mode');
     }
+
+    // Apply conditional visibility on the host element
+    if (this._shouldHide()) {
+      this.setAttribute('hidden', '');
+    } else {
+      this.removeAttribute('hidden');
+    }
+  }
+
+  private _shouldHide(): boolean {
+    if (!this._config || !this.hass) return false;
+    const triggers = this._config.visible_when_in;
+    if (!triggers || triggers.length === 0) return false;
+
+    const positions = this._getPersonPositions();
+    return !positions.some(
+      (p) => p.isAvailable && triggers.includes(p.sectionName)
+    );
   }
 
   private _getPersonPositions(): PersonPosition[] {
@@ -200,6 +255,10 @@ export class WeasleyClockCard extends LitElement {
   protected render() {
     if (!this._config || !this.hass) {
       return html`<ha-card>Loading...</ha-card>`;
+    }
+
+    if (this._shouldHide()) {
+      return html``;
     }
 
     const darkMode = isDarkMode(this.hass);
