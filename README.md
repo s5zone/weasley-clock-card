@@ -14,7 +14,8 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
 - **Zone Mapping**: Multiple zones can map to a single section
 - **Fan-out Support**: Multiple persons in the same section spread out to avoid overlap
 - **Theme Support**: Adapts to Home Assistant light and dark modes
-- **Tap Actions**: Configurable actions when tapping a person's clock hand (more-info, navigate, call-service, etc.)
+- **Tap Actions**: Configurable actions when tapping a person's clock hand (more-info, navigate, perform-action, etc.)
+- **Visual Editor**: Configure theme, persons and sections from the dashboard UI, no YAML required
 
 ## Installation
 
@@ -29,7 +30,7 @@ A custom Lovelace card for Home Assistant that displays a magical Weasley Clock 
 
 ### Manual Installation
 
-1. Download `weasley-clock-card.js` from the [latest release](https://github.com/s5zone/weasley-clock/releases)
+1. Download `weasley-clock-card.js` from the [latest release](https://github.com/s5zone/weasley-clock-card/releases)
 2. Copy it to your `config/www` folder
 3. Add the resource in Home Assistant:
    - Go to Settings → Dashboards → Resources
@@ -51,7 +52,7 @@ Example with icons:
 
 ### Configuration
 
-Add the card to your Lovelace dashboard:
+Add the card from the dashboard's card picker and configure it with the visual editor, or switch to the code editor and use YAML:
 
 ```yaml
 type: custom:weasley-clock-card
@@ -90,6 +91,16 @@ sections:
 default_section: Traveling
 ```
 
+### Visual Editor
+
+The card can be fully configured from the dashboard UI:
+
+- **General**: theme, default section and conditional visibility (`visible_when_in`)
+- **Persons**: add, remove and reorder persons; pick the person entity and set a name, fallback color and tap action
+- **Sections**: add (up to 8), remove and reorder sections; set a name, icon and the zones that map to it
+
+Renaming or removing a section automatically updates `default_section` and `visible_when_in`.
+
 ### Configuration Options
 
 | Option | Type | Required | Default | Description |
@@ -114,12 +125,15 @@ default_section: Traveling
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `action` | string | Yes | Action type: `more-info`, `toggle`, `call-service`, `navigate`, `url`, or `none` |
+| `action` | string | Yes | Action type: `more-info`, `toggle`, `perform-action`, `call-service`, `navigate`, `url`, or `none` |
 | `entity` | string | No | Entity ID for `more-info` or `toggle` actions (defaults to the person entity) |
 | `navigation_path` | string | No | Path for `navigate` action (e.g., `/lovelace/person`) |
 | `url_path` | string | No | URL for `url` action |
-| `service` | string | No | Service to call for `call-service` action (e.g., `notify.mobile_app`) |
-| `service_data` | object | No | Data to pass to the service |
+| `perform_action` | string | No | Action to perform for `perform-action` (e.g., `notify.mobile_app`) |
+| `data` | object | No | Data to pass to the `perform-action` action |
+| `target` | object | No | Target (e.g., `entity_id`) for the `perform-action` action |
+| `service` | string | No | Service to call for the legacy `call-service` action (e.g., `notify.mobile_app`) |
+| `service_data` | object | No | Data to pass to the legacy `call-service` action |
 
 ### Section Configuration
 
@@ -310,9 +324,9 @@ persons:
   - entity: person.hermione
     name: Hermione
     tap_action:
-      action: call-service
-      service: notify.mobile_app_hermione
-      service_data:
+      action: perform-action
+      perform_action: notify.mobile_app_hermione
+      data:
         message: "Hermione was tapped on the clock!"
 sections:
   - name: Home

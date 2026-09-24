@@ -3,7 +3,7 @@ export interface HomeAssistant {
     themes: Themes;
     selectedTheme: ThemeSettings | null;
     config: HassConfig;
-    callService: (domain: string, service: string, serviceData?: Record<string, unknown>) => Promise<void>;
+    callService: (domain: string, service: string, serviceData?: Record<string, unknown>, target?: Record<string, unknown>) => Promise<void>;
 }
 export interface HassEntities {
     [entityId: string]: HassEntity;

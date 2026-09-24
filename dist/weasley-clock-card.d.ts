@@ -1,4 +1,5 @@
 import { LitElement, PropertyValues } from 'lit';
+import './weasley-clock-card-editor';
 import { WeasleyClockConfig, HomeAssistant } from './types';
 export declare class WeasleyClockCard extends LitElement {
     static styles: import("lit").CSSResult;
@@ -24,12 +25,15 @@ export declare class WeasleyClockCard extends LitElement {
     private _fireMoreInfo;
     private _toggleEntity;
     private _callService;
+    private _performAction;
     private _navigate;
     private _openUrl;
-    static getConfigElement(): HTMLDivElement;
-    static getStubConfig(): {
+    static getConfigElement(): import("./weasley-clock-card-editor").WeasleyClockCardEditor;
+    static getStubConfig(hass?: HomeAssistant): {
         type: string;
         persons: {
+            entity: string;
+        }[] | {
             entity: string;
             name: string;
         }[];
@@ -46,6 +50,8 @@ declare global {
             type: string;
             name: string;
             description: string;
+            preview?: boolean;
+            documentationURL?: string;
         }>;
     }
 }

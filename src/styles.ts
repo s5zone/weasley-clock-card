@@ -3,12 +3,17 @@ import { css } from 'lit';
 export const styles = css`
   :host {
     display: block;
-    padding: 16px;
     --wc-transition-duration: 0.5s;
   }
 
   :host([hidden]) {
     display: none;
+  }
+
+  ha-card {
+    box-sizing: border-box;
+    height: 100%;
+    padding: 16px;
   }
 
   /* =====================================================

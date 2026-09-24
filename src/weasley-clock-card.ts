@@ -1,6 +1,7 @@
 import { LitElement, html, svg, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styles } from './styles';
+import './weasley-clock-card-editor';
 import {
   WeasleyClockConfig,
   PersonPosition,
@@ -707,6 +708,9 @@ export class WeasleyClockCard extends LitElement {
       case 'call-service':
         this._callService(config);
         break;
+      case 'perform-action':
+        this._performAction(config);
+        break;
       case 'navigate':
         this._navigate(config.navigation_path);
         break;
@@ -739,6 +743,12 @@ export class WeasleyClockCard extends LitElement {
     this.hass.callService(domain, service, config.service_data || {});
   }
 
+  private _performAction(config: ActionConfig): void {
+    if (!this.hass || !config.perform_action) return;
+    const [domain, service] = config.perform_action.split('.');
+    this.hass.callService(domain, service, config.data || {}, config.target);
+  }
+
   private _navigate(path?: string): void {
     if (!path) return;
     history.pushState(null, '', path);
@@ -751,16 +761,18 @@ export class WeasleyClockCard extends LitElement {
   }
 
   static getConfigElement() {
-    // Could return a config editor element here
-    return document.createElement('div');
+    return document.createElement('weasley-clock-card-editor');
   }
 
-  static getStubConfig() {
+  static getStubConfig(hass?: HomeAssistant) {
+    const persons = Object.keys(hass?.states ?? {})
+      .filter(id => id.startsWith('person.'))
+      .slice(0, 4)
+      .map(entity => ({ entity }));
+
     return {
       type: 'custom:weasley-clock-card',
-      persons: [
-        { entity: 'person.example', name: 'Example' }
-      ],
+      persons: persons.length ? persons : [{ entity: 'person.example', name: 'Example' }],
       sections: [
         { name: 'Home', zones: ['zone.home'] },
         { name: 'Work', zones: ['zone.work'] },
@@ -775,7 +787,13 @@ export class WeasleyClockCard extends LitElement {
 // Register the card with Home Assistant
 declare global {
   interface Window {
-    customCards?: Array<{ type: string; name: string; description: string }>;
+    customCards?: Array<{
+      type: string;
+      name: string;
+      description: string;
+      preview?: boolean;
+      documentationURL?: string;
+    }>;
   }
 }
 
@@ -783,5 +801,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'weasley-clock-card',
   name: 'Weasley Clock Card',
-  description: 'A magical clock showing where family members are located'
+  description: 'A magical clock showing where family members are located',
+  preview: true,
+  documentationURL: 'https://github.com/s5zone/weasley-clock-card'
 });

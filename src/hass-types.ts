@@ -9,7 +9,8 @@ export interface HomeAssistant {
   callService: (
     domain: string,
     service: string,
-    serviceData?: Record<string, unknown>
+    serviceData?: Record<string, unknown>,
+    target?: Record<string, unknown>
   ) => Promise<void>;
 }
 

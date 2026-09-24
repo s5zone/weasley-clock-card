@@ -1,5 +1,5 @@
 import { HomeAssistant } from './hass-types';
-export type ActionType = 'more-info' | 'toggle' | 'call-service' | 'navigate' | 'url' | 'none';
+export type ActionType = 'more-info' | 'toggle' | 'call-service' | 'perform-action' | 'navigate' | 'url' | 'none';
 export type ClockTheme = 'steampunk' | 'minimalist' | 'playful';
 export interface ActionConfig {
     action: ActionType;
@@ -8,6 +8,9 @@ export interface ActionConfig {
     url_path?: string;
     service?: string;
     service_data?: Record<string, unknown>;
+    perform_action?: string;
+    data?: Record<string, unknown>;
+    target?: Record<string, unknown>;
 }
 export interface WeasleyClockConfig {
     type: string;
