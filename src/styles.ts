@@ -3,6 +3,7 @@ import { css } from 'lit';
 export const styles = css`
   :host {
     display: block;
+    height: 100%;
     --wc-transition-duration: 0.5s;
   }
 
@@ -10,10 +11,13 @@ export const styles = css`
     display: none;
   }
 
+  /* Fill the whole grid cell; center the clock when the cell is taller than it */
   ha-card {
     box-sizing: border-box;
     height: 100%;
-    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   /* =====================================================
