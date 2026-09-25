@@ -375,6 +375,11 @@ npm run build
 npm run watch
 ```
 
+# Developed by me with assistance from AI
+
+I'm a senior software engineer with over 15 years of experience. Design and architecture are carefully planned, code is partially written by AI and reviewed by me.
+[![Built with Claude](https://img.shields.io/badge/Built%20with-Claude-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code)
+
 ## License
 
 MIT License - See [LICENSE](LICENSE) for details.
